@@ -1,0 +1,74 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual environments
+venv/
+ENV/
+env/
+.venv
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.hypothesis/
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Logs
+*.log
+logs/
+
+# Environment variables
+.env
+.env.local
+
+# Build artifacts
+*.pyc
+*.pyo
+*.pyd
+
+# Project-specific
+*.log.tsv
+*.backup
+.versions/
+benchmarks/results/*.json
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+
+# Staging area for files to exclude from public release (anywhere in tree)
+_to_move
+**/_to_move/
+
+# Runtime data (state, logs, cluster registry)
+data/
