@@ -1,57 +1,32 @@
 [build-system]
-requires = ["setuptools>=61.0", "wheel"]
+requires = ["setuptools>=61.0"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "dbbasic-objects-web"
-version = "0.1.0"
-description = "REST API for dbbasic Object Primitives - HTTP trigger layer"
+name = "dbbasic-object-web"
+version = "0.9.0"
+description = "HTTP server and REST API for dbbasic objects"
 readme = "README.md"
-requires-python = ">=3.8"
-license = {text = "MIT"}
+requires-python = ">=3.10"
 authors = [
-    {name = "Dan Quellhorst", email = "dan@dbbasic.com"}
+    {name = "dbbasic", email = "noreply@dbbasic.com"}
 ]
-keywords = ["object", "primitive", "web", "rest", "api", "http"]
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",
-    "License :: OSI Approved :: MIT License",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.8",
-    "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
-    "Programming Language :: Python :: 3.11",
-    "Topic :: Software Development :: Libraries :: Application Frameworks",
 ]
-
 dependencies = [
-    "dbbasic-objects-core>=0.1.0",
+    "dbbasic-object-core>=0.9.0",
     "dbbasic-web>=0.1.10",
-    "uvicorn>=0.20.0",
 ]
 
 [project.optional-dependencies]
 dev = [
     "pytest>=7.0",
     "pytest-cov>=4.0",
-    "requests>=2.28.0",
 ]
-
-[project.scripts]
-dbbasic-objects-serve = "object_primitive_web.server:main"
-
-[project.urls]
-Homepage = "https://github.com/danthegoodman/object-primitive"
-Documentation = "https://github.com/danthegoodman/object-primitive/blob/main/README.md"
-Repository = "https://github.com/danthegoodman/object-primitive"
-Issues = "https://github.com/danthegoodman/object-primitive/issues"
 
 [tool.setuptools.packages.find]
 where = ["src"]
-
-[tool.pytest.ini_options]
-testpaths = ["tests"]
-python_files = ["test_*.py"]
-python_classes = ["Test*"]
-python_functions = ["test_*"]

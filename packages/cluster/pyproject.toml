@@ -3,9 +3,9 @@ requires = ["setuptools>=61.0"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "dbbasic-object-core"
+name = "dbbasic-object-cluster"
 version = "0.9.0"
-description = "Core runtime for dbbasic objects - self-contained objects with state, logs, and versions"
+description = "Distributed cluster management for dbbasic objects - registry, heartbeat, replication"
 readme = "README.md"
 requires-python = ">=3.10"
 authors = [
@@ -17,7 +17,10 @@ classifiers = [
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.10",
 ]
-dependencies = []
+dependencies = [
+    "dbbasic-object-core>=0.9.0",
+    "dbbasic-web>=0.1.10",
+]
 
 [project.optional-dependencies]
 dev = [

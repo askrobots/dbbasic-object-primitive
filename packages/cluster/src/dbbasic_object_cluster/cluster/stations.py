@@ -13,55 +13,10 @@ import time
 from pathlib import Path
 from dbbasic_web.responses import json as json_response
 
-try:
-    from cluster_config import get_config
-except ImportError:
-    get_config = None
-
-
-def _proxy_to_master():
-    """
-    Worker stations proxy cluster registry requests to the master.
-    Reads master host/port from cluster.tsv via cluster_config.
-    """
-    # Try cluster config first (reads cluster.tsv)
-    if get_config:
-        try:
-            config = get_config()
-            master = config.get_master()
-            master_host = master['host']
-            master_port = master['port']
-        except:
-            master_host = 'localhost'
-            master_port = 8001
-    else:
-        master_host = 'localhost'
-        master_port = 8001
-
-    # Query master for cluster registry
-    try:
-        import urllib.request
-        url = f'http://{master_host}:{master_port}/cluster/stations'
-        with urllib.request.urlopen(url, timeout=2) as response:
-            data = response.read().decode('utf-8')
-            return json_response(data)
-    except Exception as e:
-        # Fall back to local registry if master unreachable
-        return json_response(json.dumps({
-            'status': 'error',
-            'message': f'Cannot reach master station: {e}',
-            'master_host': master_host,
-            'master_port': master_port
-        }))
-
 
 def GET(request):
     """List all active stations in the cluster"""
     station_id = os.environ.get('STATION_ID', 'unknown')
-
-    # If we're a worker station, proxy the request to the master
-    if station_id != 'station1':
-        return _proxy_to_master()
 
     # Read station registry from TSV
     data_dir = Path('data/cluster')
@@ -73,11 +28,7 @@ def GET(request):
 
     if registry_file.exists():
         with open(registry_file, 'r') as f:
-            for line_num, line in enumerate(f):
-                # Skip header row
-                if line_num == 0 and line.strip().startswith('station_id'):
-                    continue
-
+            for line in f:
                 if line.strip():
                     parts = line.strip().split('\t')
                     if len(parts) >= 4:
@@ -180,15 +131,9 @@ def POST(request):
 
     # Read existing registry
     existing = {}
-    header = None
     if registry_file.exists():
         with open(registry_file, 'r') as f:
-            for line_num, line in enumerate(f):
-                # Preserve header row
-                if line_num == 0 and line.strip().startswith('station_id'):
-                    header = line.strip()
-                    continue
-
+            for line in f:
                 if line.strip():
                     parts = line.strip().split('\t')
                     if len(parts) >= 4:
@@ -200,10 +145,6 @@ def POST(request):
 
     # Write back
     with open(registry_file, 'w') as f:
-        # Write header if we had one
-        if header:
-            f.write(header + '\n')
-
         for sid, parts in sorted(existing.items()):
             f.write('\t'.join(parts) + '\n')
 

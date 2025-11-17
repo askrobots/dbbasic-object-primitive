@@ -64,18 +64,8 @@ def POST(request):
     existing = {}
     if state_file.exists():
         with open(state_file, 'r') as f:
-            for line_num, line in enumerate(f):
+            for line in f:
                 if line.strip():
-                    # Skip header row if present (detect by checking if timestamp is parseable)
-                    if line_num == 0:
-                        parts = line.strip().split('\t')
-                        if len(parts) >= 3:
-                            try:
-                                float(parts[2])  # Try to parse timestamp
-                            except ValueError:
-                                # Header row detected, skip it
-                                continue
-
                     parts = line.strip().split('\t')
                     if len(parts) >= 3:
                         k, v, ts = parts[0], parts[1], float(parts[2])

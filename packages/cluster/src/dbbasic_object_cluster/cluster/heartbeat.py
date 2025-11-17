@@ -45,15 +45,9 @@ def POST(request):
 
     # Read existing registry
     existing = {}
-    header = None
     if registry_file.exists():
         with open(registry_file, 'r') as f:
-            for line_num, line in enumerate(f):
-                # Skip and preserve header row
-                if line_num == 0 and line.strip().startswith('station_id'):
-                    header = line.strip()
-                    continue
-
+            for line in f:
                 if line.strip():
                     parts = line.strip().split('\t')
                     if len(parts) >= 4:
@@ -66,10 +60,6 @@ def POST(request):
 
     # Write back
     with open(registry_file, 'w') as f:
-        # Write header if we had one
-        if header:
-            f.write(header + '\n')
-
         for sid, parts in sorted(existing.items()):
             f.write('\t'.join(parts) + '\n')
 

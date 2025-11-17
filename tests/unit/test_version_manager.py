@@ -32,7 +32,7 @@ class TestVersionSaving:
 
     def test_save_first_version(self):
         """Should save the first version of content"""
-        from src.object_primitive.core.version_manager import VersionManager
+        from dbbasic_object_core.core.version_manager import VersionManager
 
         vm = VersionManager(self.temp_dir)
 
@@ -49,7 +49,7 @@ class TestVersionSaving:
 
     def test_save_multiple_versions(self):
         """Should save multiple versions with incrementing IDs"""
-        from src.object_primitive.core.version_manager import VersionManager
+        from dbbasic_object_core.core.version_manager import VersionManager
 
         vm = VersionManager(self.temp_dir)
 
@@ -63,7 +63,7 @@ class TestVersionSaving:
 
     def test_save_version_with_metadata(self):
         """Should store metadata with version"""
-        from src.object_primitive.core.version_manager import VersionManager
+        from dbbasic_object_core.core.version_manager import VersionManager
 
         vm = VersionManager(self.temp_dir)
 
@@ -91,7 +91,7 @@ class TestVersionSaving:
 
     def test_content_hash_changes_with_content(self):
         """Should compute different hashes for different content"""
-        from src.object_primitive.core.version_manager import VersionManager
+        from dbbasic_object_core.core.version_manager import VersionManager
 
         vm = VersionManager(self.temp_dir)
 
@@ -106,7 +106,7 @@ class TestVersionSaving:
 
     def test_save_version_for_different_objects(self):
         """Should handle versions for different objects independently"""
-        from src.object_primitive.core.version_manager import VersionManager
+        from dbbasic_object_core.core.version_manager import VersionManager
 
         vm = VersionManager(self.temp_dir)
 
@@ -127,7 +127,7 @@ class TestVersionRetrieval:
     def setup_method(self):
         """Create temporary directory and save some versions"""
         self.temp_dir = Path(tempfile.mkdtemp())
-        from src.object_primitive.core.version_manager import VersionManager
+        from dbbasic_object_core.core.version_manager import VersionManager
 
         self.vm = VersionManager(self.temp_dir)
 
@@ -177,7 +177,7 @@ class TestVersionHistory:
     def setup_method(self):
         """Create temporary directory and save some versions"""
         self.temp_dir = Path(tempfile.mkdtemp())
-        from src.object_primitive.core.version_manager import VersionManager
+        from dbbasic_object_core.core.version_manager import VersionManager
 
         self.vm = VersionManager(self.temp_dir)
 
@@ -237,7 +237,7 @@ class TestVersionRollback:
     def setup_method(self):
         """Create temporary directory and save some versions"""
         self.temp_dir = Path(tempfile.mkdtemp())
-        from src.object_primitive.core.version_manager import VersionManager
+        from dbbasic_object_core.core.version_manager import VersionManager
 
         self.vm = VersionManager(self.temp_dir)
 
@@ -276,7 +276,7 @@ class TestVersionRollback:
 
     def test_rollback_to_nonexistent_version_raises_error(self):
         """Should raise error when rolling back to non-existent version"""
-        from src.object_primitive.core.version_manager import VersionNotFoundError
+        from dbbasic_object_core.core.version_manager import VersionNotFoundError
 
         with pytest.raises(VersionNotFoundError):
             self.vm.rollback('test', to_version=999, author='user', message='Rollback')
@@ -296,7 +296,7 @@ class TestVersionStorage:
 
     def test_creates_version_directory_structure(self):
         """Should create directory structure for versions"""
-        from src.object_primitive.core.version_manager import VersionManager
+        from dbbasic_object_core.core.version_manager import VersionManager
 
         vm = VersionManager(self.temp_dir)
         vm.save_version('test_obj', 'content', 'user', 'message')
@@ -308,7 +308,7 @@ class TestVersionStorage:
 
     def test_stores_version_metadata_in_tsv(self):
         """Should store version metadata in TSV file"""
-        from src.object_primitive.core.version_manager import VersionManager
+        from dbbasic_object_core.core.version_manager import VersionManager
 
         vm = VersionManager(self.temp_dir)
         vm.save_version('test', 'content', 'user', 'message')
@@ -328,7 +328,7 @@ class TestVersionStorage:
 
     def test_stores_version_content_separately(self):
         """Should store version content in separate file"""
-        from src.object_primitive.core.version_manager import VersionManager
+        from dbbasic_object_core.core.version_manager import VersionManager
 
         vm = VersionManager(self.temp_dir)
         vm.save_version('test', 'test content here', 'user', 'message')

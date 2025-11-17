@@ -33,7 +33,7 @@ class TestBasicLogging:
 
     def test_log_single_entry(self):
         """Should log a single entry to TSV file"""
-        from src.object_primitive.core.self_logger import SelfLogger
+        from dbbasic_object_core.core.self_logger import SelfLogger
 
         logger = SelfLogger(object_id='test_endpoint', base_dir=self.temp_dir)
 
@@ -57,7 +57,7 @@ class TestBasicLogging:
 
     def test_log_multiple_entries(self):
         """Should log multiple entries in order"""
-        from src.object_primitive.core.self_logger import SelfLogger
+        from dbbasic_object_core.core.self_logger import SelfLogger
 
         logger = SelfLogger(object_id='test', base_dir=self.temp_dir)
 
@@ -76,7 +76,7 @@ class TestBasicLogging:
 
     def test_log_with_metadata(self):
         """Should include timestamp, level, and other metadata"""
-        from src.object_primitive.core.self_logger import SelfLogger
+        from dbbasic_object_core.core.self_logger import SelfLogger
 
         logger = SelfLogger(object_id='test', base_dir=self.temp_dir)
 
@@ -107,7 +107,7 @@ class TestBasicLogging:
 
     def test_logs_for_different_objects_separate(self):
         """Should keep logs separate for different objects"""
-        from src.object_primitive.core.self_logger import SelfLogger
+        from dbbasic_object_core.core.self_logger import SelfLogger
 
         logger1 = SelfLogger(object_id='endpoint1', base_dir=self.temp_dir)
         logger2 = SelfLogger(object_id='endpoint2', base_dir=self.temp_dir)
@@ -146,7 +146,7 @@ class TestLogLevels:
 
     def test_log_levels(self):
         """Should support different log levels"""
-        from src.object_primitive.core.self_logger import SelfLogger
+        from dbbasic_object_core.core.self_logger import SelfLogger
 
         logger = SelfLogger(object_id='test', base_dir=self.temp_dir)
 
@@ -167,7 +167,7 @@ class TestLogLevels:
 
     def test_convenience_methods(self):
         """Should provide convenience methods for each level"""
-        from src.object_primitive.core.self_logger import SelfLogger
+        from dbbasic_object_core.core.self_logger import SelfLogger
 
         logger = SelfLogger(object_id='test', base_dir=self.temp_dir)
 
@@ -190,7 +190,7 @@ class TestLogQuerying:
     def setup_method(self):
         """Create temporary directory and some logs"""
         self.temp_dir = Path(tempfile.mkdtemp())
-        from src.object_primitive.core.self_logger import SelfLogger
+        from dbbasic_object_core.core.self_logger import SelfLogger
 
         self.logger = SelfLogger(object_id='test', base_dir=self.temp_dir)
 
@@ -258,7 +258,7 @@ class TestLogRotation:
 
     def test_rotation_after_size_limit(self):
         """Should rotate log file when it exceeds size limit"""
-        from src.object_primitive.core.self_logger import SelfLogger
+        from dbbasic_object_core.core.self_logger import SelfLogger
 
         # Create logger with small max size (1KB for testing)
         logger = SelfLogger(
@@ -280,7 +280,7 @@ class TestLogRotation:
 
     def test_rotation_preserves_old_logs(self):
         """Should keep old rotated logs"""
-        from src.object_primitive.core.self_logger import SelfLogger
+        from dbbasic_object_core.core.self_logger import SelfLogger
 
         logger = SelfLogger(
             object_id='test',
@@ -307,7 +307,7 @@ class TestLogRotation:
 
     def test_rotation_naming_convention(self):
         """Should use timestamp-based naming for rotated logs"""
-        from src.object_primitive.core.self_logger import SelfLogger
+        from dbbasic_object_core.core.self_logger import SelfLogger
 
         logger = SelfLogger(
             object_id='test',
@@ -341,7 +341,7 @@ class TestLogStorage:
 
     def test_tsv_format(self):
         """Should store logs in TSV format"""
-        from src.object_primitive.core.self_logger import SelfLogger
+        from dbbasic_object_core.core.self_logger import SelfLogger
 
         logger = SelfLogger(object_id='test', base_dir=self.temp_dir)
         logger.info('Test message', custom_field='custom_value')
@@ -357,7 +357,7 @@ class TestLogStorage:
 
     def test_human_readable(self):
         """Should be human-readable (cat, grep, etc.)"""
-        from src.object_primitive.core.self_logger import SelfLogger
+        from dbbasic_object_core.core.self_logger import SelfLogger
 
         logger = SelfLogger(object_id='test', base_dir=self.temp_dir)
         logger.error('Error occurred', error_code='E123')
@@ -373,7 +373,7 @@ class TestLogStorage:
 
     def test_append_only(self):
         """Should append entries (not overwrite)"""
-        from src.object_primitive.core.self_logger import SelfLogger
+        from dbbasic_object_core.core.self_logger import SelfLogger
 
         logger = SelfLogger(object_id='test', base_dir=self.temp_dir)
 

@@ -188,8 +188,6 @@ def GET(request, id=None):
         <div class="tab active" onclick="switchTab('overview')">Overview</div>
         <div class="tab" onclick="switchTab('source')">Source Code</div>
         <div class="tab" onclick="switchTab('logs')">Logs</div>
-        <div class="tab" onclick="switchTab('state')">State</div>
-        <div class="tab" onclick="switchTab('files')">Files</div>
         <div class="tab" onclick="switchTab('metrics')">Metrics</div>
         <div class="tab" onclick="switchTab('versions')">Versions</div>
     </div>
@@ -231,26 +229,6 @@ def GET(request, id=None):
             <h2 style="margin-bottom: 20px;">Recent Logs</h2>
             <div id="logs-container">
                 <div class="loading">Loading logs...</div>
-            </div>
-        </div>
-
-        <div id="state" class="tab-content">
-            <h2 style="margin-bottom: 20px;">Object State</h2>
-            <p style="color: #999; margin-bottom: 20px;">
-                Current in-memory state of this object
-            </p>
-            <div id="state-container" style="background: #1a1a1a; padding: 20px; border-radius: 8px;">
-                <div class="loading">Loading state...</div>
-            </div>
-        </div>
-
-        <div id="files" class="tab-content">
-            <h2 style="margin-bottom: 20px;">Uploaded Files</h2>
-            <p style="color: #999; margin-bottom: 20px;">
-                Files uploaded to this object (images, documents, etc.)
-            </p>
-            <div id="files-container" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 15px;">
-                <div class="loading">Loading files...</div>
             </div>
         </div>
 
@@ -318,14 +296,6 @@ def GET(request, id=None):
                 loadLogs();
                 window.logsLoaded = true;
             }}
-            if (tabName === 'state' && !window.stateLoaded) {{
-                loadState();
-                window.stateLoaded = true;
-            }}
-            if (tabName === 'files' && !window.filesLoaded) {{
-                loadFiles();
-                window.filesLoaded = true;
-            }}
             if (tabName === 'metrics' && !window.metricsLoaded) {{
                 loadMetrics();
                 window.metricsLoaded = true;
@@ -391,197 +361,6 @@ def GET(request, id=None):
             }} catch (e) {{
                 document.getElementById('logs-container').innerHTML =
                     '<p style="color: #ef4444;">Error loading logs: ' + e.message + '</p>';
-            }}
-        }}
-
-        async function loadState() {{
-            try {{
-                const container = document.getElementById('state-container');
-                container.innerHTML = '<p style="color: #999;">Loading state from all stations...</p>';
-
-                // Get list of active stations
-                const stationsResp = await fetch('/cluster/stations');
-                const stationsData = await stationsResp.json();
-
-                if (!stationsData.stations || stationsData.stations.length === 0) {{
-                    container.innerHTML = '<p style="color: #999;">No active stations found</p>';
-                    return;
-                }}
-
-                // Query each active station for state
-                const statePromises = stationsData.stations
-                    .filter(s => s.is_active)
-                    .map(async station => {{
-                        try {{
-                            const resp = await fetch(`/objects/${{objectId}}@${{station.station_id}}?state=true`);
-                            const data = await resp.json();
-                            return {{
-                                station_id: station.station_id,
-                                state: data.state || {{}},
-                                error: null
-                            }};
-                        }} catch (e) {{
-                            return {{
-                                station_id: station.station_id,
-                                state: null,
-                                error: e.message
-                            }};
-                        }}
-                    }});
-
-                const states = await Promise.all(statePromises);
-
-                // Check for consistency
-                const stateStrings = states
-                    .filter(s => s.state !== null)
-                    .map(s => JSON.stringify(s.state));
-                const isConsistent = stateStrings.length > 0 &&
-                    stateStrings.every(s => s === stateStrings[0]);
-
-                // Build display
-                container.innerHTML = '';
-
-                // Consistency indicator
-                const statusDiv = document.createElement('div');
-                statusDiv.style.marginBottom = '20px';
-                statusDiv.style.padding = '10px';
-                statusDiv.style.borderRadius = '5px';
-                statusDiv.style.background = isConsistent ? '#064e3b' : '#7c2d12';
-                statusDiv.innerHTML = isConsistent
-                    ? '✓ State is consistent across all stations'
-                    : '⚠️ State inconsistency detected';
-                container.appendChild(statusDiv);
-
-                // Display each station's state
-                states.forEach(s => {{
-                    const stationDiv = document.createElement('div');
-                    stationDiv.style.marginBottom = '15px';
-                    stationDiv.style.padding = '15px';
-                    stationDiv.style.background = '#0a0a0a';
-                    stationDiv.style.borderRadius = '5px';
-                    stationDiv.style.border = '1px solid #333';
-
-                    const header = document.createElement('div');
-                    header.style.marginBottom = '10px';
-                    header.style.fontWeight = 'bold';
-                    header.style.color = s.error ? '#ef4444' : '#10b981';
-                    header.textContent = s.station_id;
-                    stationDiv.appendChild(header);
-
-                    if (s.error) {{
-                        const errorP = document.createElement('p');
-                        errorP.style.color = '#ef4444';
-                        errorP.textContent = `Error: ${{s.error}}`;
-                        stationDiv.appendChild(errorP);
-                    }} else if (!s.state || Object.keys(s.state).length === 0) {{
-                        const emptyP = document.createElement('p');
-                        emptyP.style.color = '#999';
-                        emptyP.textContent = 'No state';
-                        stationDiv.appendChild(emptyP);
-                    }} else {{
-                        const pre = document.createElement('pre');
-                        pre.style.margin = '0';
-                        pre.style.whiteSpace = 'pre-wrap';
-                        pre.style.color = '#d4d4d4';
-                        pre.textContent = JSON.stringify(s.state, null, 2);
-                        stationDiv.appendChild(pre);
-                    }}
-
-                    container.appendChild(stationDiv);
-                }});
-            }} catch (e) {{
-                document.getElementById('state-container').innerHTML =
-                    '<p style="color: #ef4444;">Error loading state: ' + e.message + '</p>';
-            }}
-        }}
-
-        async function loadFiles() {{
-            try {{
-                const response = await fetch(`/objects/${{objectId}}?files=true`);
-                const data = await response.json();
-
-                const container = document.getElementById('files-container');
-                container.innerHTML = '';
-
-                if (!data.files || data.files.length === 0) {{
-                    container.innerHTML = '<p style="color: #999; grid-column: 1/-1;">No files uploaded yet</p>';
-                    return;
-                }}
-
-                // Display each file
-                data.files.forEach(file => {{
-                    const fileCard = document.createElement('div');
-                    fileCard.style.cssText = `
-                        background: #1a1a1a;
-                        border-radius: 8px;
-                        padding: 15px;
-                        border: 1px solid #333;
-                        display: flex;
-                        flex-direction: column;
-                        gap: 10px;
-                    `;
-
-                    const filename = file.filename || file;
-                    const isImage = /\.(jpg|jpeg|png|gif|webp|svg)$/i.test(filename);
-
-                    // Image preview or file icon
-                    if (isImage) {{
-                        const img = document.createElement('img');
-                        img.src = `/objects/${{objectId}}?file=${{encodeURIComponent(filename)}}`;
-                        img.style.cssText = `
-                            width: 100%;
-                            height: 150px;
-                            object-fit: cover;
-                            border-radius: 6px;
-                            cursor: pointer;
-                            background: #0a0a0a;
-                        `;
-                        img.onclick = () => window.open(img.src, '_blank');
-                        fileCard.appendChild(img);
-                    }} else {{
-                        const icon = document.createElement('div');
-                        icon.style.cssText = `
-                            width: 100%;
-                            height: 150px;
-                            display: flex;
-                            align-items: center;
-                            justify-content: center;
-                            background: #0a0a0a;
-                            border-radius: 6px;
-                            font-size: 48px;
-                        `;
-                        icon.textContent = '📄';
-                        fileCard.appendChild(icon);
-                    }}
-
-                    // Filename
-                    const nameDiv = document.createElement('div');
-                    nameDiv.style.cssText = `
-                        color: #e0e0e0;
-                        font-size: 14px;
-                        word-break: break-word;
-                    `;
-                    nameDiv.textContent = filename;
-                    fileCard.appendChild(nameDiv);
-
-                    // Actions
-                    const actionsDiv = document.createElement('div');
-                    actionsDiv.style.cssText = 'display: flex; gap: 5px;';
-
-                    const viewBtn = document.createElement('button');
-                    viewBtn.className = 'btn btn-primary';
-                    viewBtn.style.cssText = 'flex: 1; font-size: 12px; padding: 6px;';
-                    viewBtn.textContent = isImage ? 'View' : 'Download';
-                    viewBtn.onclick = () => window.open(`/objects/${{objectId}}?file=${{encodeURIComponent(filename)}}`, '_blank');
-                    actionsDiv.appendChild(viewBtn);
-
-                    fileCard.appendChild(actionsDiv);
-                    container.appendChild(fileCard);
-                }});
-
-            }} catch (e) {{
-                document.getElementById('files-container').innerHTML =
-                    '<p style="color: #ef4444; grid-column: 1/-1;">Error loading files: ' + e.message + '</p>';
             }}
         }}
 
@@ -653,7 +432,7 @@ def GET(request, id=None):
 
                 // Last execution
                 const lastLog = logs[0];  // logs are sorted newest first
-                const lastExecution = lastLog ? new Date(lastLog.timestamp).toLocaleString() : 'Never';
+                const lastExecution = lastLog ? new Date(lastLog.timestamp * 1000).toLocaleString() : 'Never';
 
                 // Update metrics display
                 document.getElementById('total-executions').textContent = total;

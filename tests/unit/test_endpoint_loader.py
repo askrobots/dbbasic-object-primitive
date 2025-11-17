@@ -15,7 +15,7 @@ class TestEndpointLoaderBasics:
 
     def test_import_endpoint_module(self):
         """Should import an endpoint file as a Python module"""
-        from src.object_primitive.core.endpoint_loader import load_endpoint
+        from dbbasic_object_core.core.endpoint_loader import load_endpoint
 
         # Load the hello endpoint fixture
         endpoint_path = Path(__file__).parent.parent / 'fixtures' / 'endpoints' / 'hello.py'
@@ -28,7 +28,7 @@ class TestEndpointLoaderBasics:
 
     def test_load_endpoint_by_string_path(self):
         """Should accept path as string"""
-        from src.object_primitive.core.endpoint_loader import load_endpoint
+        from dbbasic_object_core.core.endpoint_loader import load_endpoint
 
         endpoint_path = str(Path(__file__).parent.parent / 'fixtures' / 'endpoints' / 'hello.py')
         endpoint = load_endpoint(endpoint_path)
@@ -37,14 +37,14 @@ class TestEndpointLoaderBasics:
 
     def test_load_nonexistent_endpoint_raises_error(self):
         """Should raise error when endpoint file doesn't exist"""
-        from src.object_primitive.core.endpoint_loader import load_endpoint, EndpointNotFoundError
+        from dbbasic_object_core.core.endpoint_loader import load_endpoint, EndpointNotFoundError
 
         with pytest.raises(EndpointNotFoundError):
             load_endpoint('/nonexistent/path/to/endpoint.py')
 
     def test_load_invalid_python_raises_error(self):
         """Should raise error when endpoint file has syntax errors"""
-        from src.object_primitive.core.endpoint_loader import load_endpoint, EndpointLoadError
+        from dbbasic_object_core.core.endpoint_loader import load_endpoint, EndpointLoadError
 
         # Create a temporary file with invalid Python
         import tempfile
@@ -64,7 +64,7 @@ class TestEndpointExecution:
 
     def test_execute_get_method(self):
         """Should execute GET method and return result"""
-        from src.object_primitive.core.endpoint_loader import load_endpoint, execute_endpoint
+        from dbbasic_object_core.core.endpoint_loader import load_endpoint, execute_endpoint
 
         endpoint_path = Path(__file__).parent.parent / 'fixtures' / 'endpoints' / 'hello.py'
         endpoint = load_endpoint(endpoint_path)
@@ -77,7 +77,7 @@ class TestEndpointExecution:
 
     def test_execute_post_method(self):
         """Should execute POST method with data"""
-        from src.object_primitive.core.endpoint_loader import load_endpoint, execute_endpoint
+        from dbbasic_object_core.core.endpoint_loader import load_endpoint, execute_endpoint
 
         endpoint_path = Path(__file__).parent.parent / 'fixtures' / 'endpoints' / 'hello.py'
         endpoint = load_endpoint(endpoint_path)
@@ -90,7 +90,7 @@ class TestEndpointExecution:
 
     def test_execute_unsupported_method_raises_error(self):
         """Should raise error for unsupported HTTP methods"""
-        from src.object_primitive.core.endpoint_loader import load_endpoint, execute_endpoint, MethodNotSupportedError
+        from dbbasic_object_core.core.endpoint_loader import load_endpoint, execute_endpoint, MethodNotSupportedError
 
         endpoint_path = Path(__file__).parent.parent / 'fixtures' / 'endpoints' / 'hello.py'
         endpoint = load_endpoint(endpoint_path)
@@ -100,7 +100,7 @@ class TestEndpointExecution:
 
     def test_execute_method_that_raises_exception(self):
         """Should catch and wrap exceptions from endpoint code"""
-        from src.object_primitive.core.endpoint_loader import load_endpoint, execute_endpoint, EndpointExecutionError
+        from dbbasic_object_core.core.endpoint_loader import load_endpoint, execute_endpoint, EndpointExecutionError
 
         # Create a temporary endpoint that raises an error
         import tempfile
@@ -128,7 +128,7 @@ class TestEndpointMetadata:
 
     def test_read_endpoint_metadata(self):
         """Should read __endpoint__ metadata from endpoint"""
-        from src.object_primitive.core.endpoint_loader import load_endpoint, get_endpoint_metadata
+        from dbbasic_object_core.core.endpoint_loader import load_endpoint, get_endpoint_metadata
 
         endpoint_path = Path(__file__).parent.parent / 'fixtures' / 'endpoints' / 'hello.py'
         endpoint = load_endpoint(endpoint_path)
@@ -142,7 +142,7 @@ class TestEndpointMetadata:
 
     def test_endpoint_without_metadata_returns_defaults(self):
         """Should return default metadata if __endpoint__ not present"""
-        from src.object_primitive.core.endpoint_loader import load_endpoint, get_endpoint_metadata
+        from dbbasic_object_core.core.endpoint_loader import load_endpoint, get_endpoint_metadata
 
         # Create a temporary endpoint without metadata
         import tempfile
@@ -165,7 +165,7 @@ class TestEndpointValidation:
 
     def test_calculator_add_operation(self):
         """Should perform addition correctly"""
-        from src.object_primitive.core.endpoint_loader import load_endpoint, execute_endpoint
+        from dbbasic_object_core.core.endpoint_loader import load_endpoint, execute_endpoint
 
         endpoint_path = Path(__file__).parent.parent / 'fixtures' / 'endpoints' / 'calculator.py'
         endpoint = load_endpoint(endpoint_path)
@@ -181,7 +181,7 @@ class TestEndpointValidation:
 
     def test_calculator_division_by_zero(self):
         """Should handle division by zero gracefully"""
-        from src.object_primitive.core.endpoint_loader import load_endpoint, execute_endpoint
+        from dbbasic_object_core.core.endpoint_loader import load_endpoint, execute_endpoint
 
         endpoint_path = Path(__file__).parent.parent / 'fixtures' / 'endpoints' / 'calculator.py'
         endpoint = load_endpoint(endpoint_path)
@@ -197,7 +197,7 @@ class TestEndpointValidation:
 
     def test_calculator_invalid_operation(self):
         """Should reject invalid operations"""
-        from src.object_primitive.core.endpoint_loader import load_endpoint, execute_endpoint
+        from dbbasic_object_core.core.endpoint_loader import load_endpoint, execute_endpoint
 
         endpoint_path = Path(__file__).parent.parent / 'fixtures' / 'endpoints' / 'calculator.py'
         endpoint = load_endpoint(endpoint_path)
@@ -213,7 +213,7 @@ class TestEndpointValidation:
 
     def test_calculator_missing_parameters(self):
         """Should reject missing parameters"""
-        from src.object_primitive.core.endpoint_loader import load_endpoint, execute_endpoint
+        from dbbasic_object_core.core.endpoint_loader import load_endpoint, execute_endpoint
 
         endpoint_path = Path(__file__).parent.parent / 'fixtures' / 'endpoints' / 'calculator.py'
         endpoint = load_endpoint(endpoint_path)
@@ -232,7 +232,7 @@ class TestEndpointCaching:
 
     def test_cache_loaded_endpoints(self):
         """Should cache endpoints to avoid reloading"""
-        from src.object_primitive.core.endpoint_loader import load_endpoint, clear_cache, get_cache_stats
+        from dbbasic_object_core.core.endpoint_loader import load_endpoint, clear_cache, get_cache_stats
 
         clear_cache()
 
@@ -252,7 +252,7 @@ class TestEndpointCaching:
 
     def test_clear_cache(self):
         """Should clear the endpoint cache"""
-        from src.object_primitive.core.endpoint_loader import load_endpoint, clear_cache, get_cache_stats
+        from dbbasic_object_core.core.endpoint_loader import load_endpoint, clear_cache, get_cache_stats
 
         endpoint_path = Path(__file__).parent.parent / 'fixtures' / 'endpoints' / 'hello.py'
         load_endpoint(endpoint_path)
@@ -264,7 +264,7 @@ class TestEndpointCaching:
 
     def test_reload_endpoint_bypasses_cache(self):
         """Should reload endpoint when reload=True"""
-        from src.object_primitive.core.endpoint_loader import load_endpoint
+        from dbbasic_object_core.core.endpoint_loader import load_endpoint
 
         endpoint_path = Path(__file__).parent.parent / 'fixtures' / 'endpoints' / 'hello.py'
 

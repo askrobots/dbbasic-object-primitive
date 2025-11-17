@@ -293,11 +293,10 @@ def GET(request):
             card.className = 'object-card';
 
             // Fetch metadata for this object
-            let meta = {};
+            let metadata = {};
             try {
                 const response = await fetch(`/objects/${obj.object_id}?metadata=true`);
-                const data = await response.json();
-                meta = data.metadata || {};
+                metadata = await response.json();
             } catch (e) {
                 console.error(`Error fetching metadata for ${obj.object_id}:`, e);
             }
@@ -305,8 +304,8 @@ def GET(request):
             card.innerHTML = `
                 <div class="object-name">${obj.object_id}</div>
                 <div class="object-meta">
-                    <span>📝 ${meta.version_count || 0} versions</span>
-                    <span>📊 ${meta.log_count || 0} logs</span>
+                    <span>📝 ${metadata.version_count || 0} versions</span>
+                    <span>📊 ${metadata.log_count || 0} logs</span>
                 </div>
                 <div style="margin: 10px 0;">
                     <span class="metric">Python Object</span>

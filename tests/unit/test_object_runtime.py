@@ -33,7 +33,7 @@ class TestObjectRuntimeBasics:
 
     def test_load_object(self):
         """Should load an endpoint as an object"""
-        from src.object_primitive.runtime.object_runtime import ObjectRuntime
+        from dbbasic_object_core.runtime.object_runtime import ObjectRuntime
 
         runtime = ObjectRuntime(base_dir=self.temp_dir)
 
@@ -45,7 +45,7 @@ class TestObjectRuntimeBasics:
 
     def test_execute_object_method(self):
         """Should execute object methods"""
-        from src.object_primitive.runtime.object_runtime import ObjectRuntime
+        from dbbasic_object_core.runtime.object_runtime import ObjectRuntime
 
         runtime = ObjectRuntime(base_dir=self.temp_dir)
         obj = runtime.load_object('tests/fixtures/endpoints/hello.py')
@@ -58,7 +58,7 @@ class TestObjectRuntimeBasics:
 
     def test_object_logs_to_itself(self):
         """Should automatically log all method executions"""
-        from src.object_primitive.runtime.object_runtime import ObjectRuntime
+        from dbbasic_object_core.runtime.object_runtime import ObjectRuntime
 
         runtime = ObjectRuntime(base_dir=self.temp_dir)
         obj = runtime.load_object('tests/fixtures/endpoints/hello.py')
@@ -80,7 +80,7 @@ class TestObjectRuntimeBasics:
 
     def test_object_has_state(self):
         """Should provide state management to objects"""
-        from src.object_primitive.runtime.object_runtime import ObjectRuntime
+        from dbbasic_object_core.runtime.object_runtime import ObjectRuntime
 
         runtime = ObjectRuntime(base_dir=self.temp_dir)
 
@@ -99,7 +99,7 @@ class TestObjectRuntimeBasics:
 
     def test_object_state_persists(self):
         """Should persist state across reloads"""
-        from src.object_primitive.runtime.object_runtime import ObjectRuntime
+        from dbbasic_object_core.runtime.object_runtime import ObjectRuntime
 
         runtime = ObjectRuntime(base_dir=self.temp_dir)
         obj = runtime.load_object('examples/basics/counter.py')
@@ -130,7 +130,7 @@ class TestObjectVersioning:
 
     def test_save_version_on_modification(self):
         """Should automatically version code when modified"""
-        from src.object_primitive.runtime.object_runtime import ObjectRuntime
+        from dbbasic_object_core.runtime.object_runtime import ObjectRuntime
         import shutil
 
         # Copy hello.py to temp dir
@@ -156,7 +156,7 @@ __endpoint__ = {'name': 'hello', 'version': '2.0.0'}
 
     def test_rollback_to_previous_version(self):
         """Should be able to rollback to previous version"""
-        from src.object_primitive.runtime.object_runtime import ObjectRuntime
+        from dbbasic_object_core.runtime.object_runtime import ObjectRuntime
         import shutil as sh
 
         # Copy hello.py to temp dir
@@ -206,7 +206,7 @@ class TestObjectIntrospection:
 
     def test_get_object_metadata(self):
         """Should provide object metadata"""
-        from src.object_primitive.runtime.object_runtime import ObjectRuntime
+        from dbbasic_object_core.runtime.object_runtime import ObjectRuntime
 
         runtime = ObjectRuntime(base_dir=self.temp_dir)
         obj = runtime.load_object('tests/fixtures/endpoints/hello.py')
@@ -219,7 +219,7 @@ class TestObjectIntrospection:
 
     def test_get_object_source_code(self):
         """Should return object's source code"""
-        from src.object_primitive.runtime.object_runtime import ObjectRuntime
+        from dbbasic_object_core.runtime.object_runtime import ObjectRuntime
 
         runtime = ObjectRuntime(base_dir=self.temp_dir)
         obj = runtime.load_object('tests/fixtures/endpoints/hello.py')
@@ -231,7 +231,7 @@ class TestObjectIntrospection:
 
     def test_get_object_logs(self):
         """Should return object's logs"""
-        from src.object_primitive.runtime.object_runtime import ObjectRuntime
+        from dbbasic_object_core.runtime.object_runtime import ObjectRuntime
 
         runtime = ObjectRuntime(base_dir=self.temp_dir)
         obj = runtime.load_object('tests/fixtures/endpoints/hello.py')
@@ -248,7 +248,7 @@ class TestObjectIntrospection:
 
     def test_get_object_state(self):
         """Should return object's current state"""
-        from src.object_primitive.runtime.object_runtime import ObjectRuntime
+        from dbbasic_object_core.runtime.object_runtime import ObjectRuntime
 
         runtime = ObjectRuntime(base_dir=self.temp_dir)
         obj = runtime.load_object('examples/basics/counter.py')
@@ -277,7 +277,7 @@ class TestObjectIsolation:
 
     def test_objects_have_separate_logs(self):
         """Should keep logs separate for different objects"""
-        from src.object_primitive.runtime.object_runtime import ObjectRuntime
+        from dbbasic_object_core.runtime.object_runtime import ObjectRuntime
 
         runtime = ObjectRuntime(base_dir=self.temp_dir)
 
@@ -298,7 +298,7 @@ class TestObjectIsolation:
 
     def test_objects_have_separate_state(self):
         """Should keep state separate for different counter instances"""
-        from src.object_primitive.runtime.object_runtime import ObjectRuntime
+        from dbbasic_object_core.runtime.object_runtime import ObjectRuntime
 
         runtime = ObjectRuntime(base_dir=self.temp_dir)
 

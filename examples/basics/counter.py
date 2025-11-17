@@ -12,7 +12,9 @@ The counter:
 - Can be reset via POST
 - Logs every operation to its own log file
 - Versions changes to its code
+- Tracks execution time for performance monitoring
 """
+import time
 
 # This will be injected by the runtime
 _logger = None
@@ -29,6 +31,8 @@ def GET(request):
     Returns:
         Dict with counter value
     """
+    start_time = time.time()
+
     # Get current count
     if _state_manager:
         count = _state_manager.get('count', 0)
@@ -38,12 +42,16 @@ def GET(request):
         # Fallback if no state manager
         count = 1
 
-    # Log the operation
+    # Calculate execution time
+    exec_time_ms = (time.time() - start_time) * 1000
+
+    # Log the operation with execution time
     if _logger:
         _logger.info(
-            'Counter incremented',
+            f'Counter incremented - completed in {exec_time_ms:.2f}ms',
             method='GET',
             count=count,
+            exec_time_ms=exec_time_ms,
             user_id=request.get('user_id'),
             request_id=request.get('request_id'),
         )
@@ -65,6 +73,8 @@ def POST(request):
     Returns:
         Dict with new counter value
     """
+    start_time = time.time()
+
     # Get reset value (default to 0)
     new_value = request.get('value', 0)
 
@@ -75,13 +85,17 @@ def POST(request):
     else:
         old_value = 0
 
-    # Log the reset
+    # Calculate execution time
+    exec_time_ms = (time.time() - start_time) * 1000
+
+    # Log the reset with execution time
     if _logger:
         _logger.warning(
-            'Counter reset',
+            f'Counter reset - completed in {exec_time_ms:.2f}ms',
             method='POST',
             old_value=old_value,
             new_value=new_value,
+            exec_time_ms=exec_time_ms,
             user_id=request.get('user_id'),
             request_id=request.get('request_id'),
         )
@@ -125,6 +139,72 @@ def DELETE(request):
     }
 
 
+def test_increment():
+    """
+    Test that counter increments correctly.
+
+    Objects can test themselves! This is dogfooding at its finest.
+    """
+    if not _state_manager:
+        return {'status': 'skip', 'reason': 'No state manager available'}
+
+    # Reset to known state
+    _state_manager.set('count', 10)
+
+    # Increment
+    result = GET({'test': True})
+
+    # Verify
+    assert result['count'] == 11, f"Expected count=11, got {result['count']}"
+    assert result['status'] == 'ok', f"Expected status=ok, got {result['status']}"
+
+    if _logger:
+        _logger.info('test_increment passed', test='test_increment', result='pass')
+
+    return {'status': 'pass', 'test': 'test_increment'}
+
+
+def test_reset():
+    """Test that counter resets to specified value."""
+    if not _state_manager:
+        return {'status': 'skip', 'reason': 'No state manager available'}
+
+    # Set to some value
+    _state_manager.set('count', 99)
+
+    # Reset to 0
+    result = POST({'value': 0})
+
+    # Verify
+    assert result['count'] == 0, f"Expected count=0, got {result['count']}"
+    assert _state_manager.get('count') == 0, "State not actually reset"
+
+    if _logger:
+        _logger.info('test_reset passed', test='test_reset', result='pass')
+
+    return {'status': 'pass', 'test': 'test_reset'}
+
+
+def test_state_persistence():
+    """Test that state persists across calls."""
+    if not _state_manager:
+        return {'status': 'skip', 'reason': 'No state manager available'}
+
+    # Set known value
+    _state_manager.set('count', 42)
+
+    # Get it back
+    value = _state_manager.get('count')
+
+    # Verify
+    assert value == 42, f"Expected count=42, got {value}"
+
+    if _logger:
+        _logger.info('test_state_persistence passed', test='test_state_persistence', result='pass')
+
+    return {'status': 'pass', 'test': 'test_state_persistence'}
+
+
 __endpoint__ = {
     'name': 'counter',
     'description': 'A self-logging, self-versioning counter endpoint',
@@ -133,6 +213,7 @@ __endpoint__ = {
     'methods': ['GET', 'POST', 'DELETE'],
     'self_logging': True,
     'self_versioning': True,
+    'self_testing': True,  # Objects can test themselves!
     'state': {
         'count': 'Integer counter value',
     },
