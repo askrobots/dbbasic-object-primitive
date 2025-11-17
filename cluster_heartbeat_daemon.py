@@ -9,7 +9,7 @@ Usage:
 
 Example:
     python cluster_heartbeat_daemon.py localhost
-    python cluster_heartbeat_daemon.py 192.168.0.120
+    python cluster_heartbeat_daemon.py 192.0.2.1
 """
 import os
 import sys
@@ -84,18 +84,33 @@ def get_load_metrics():
     return metrics
 
 
-def send_heartbeat(master_host, station_id, local_ip):
-    """Send heartbeat to master with load metrics"""
+def get_version():
+    """Read version from VERSION file"""
+    try:
+        version_file = Path('VERSION')
+        if version_file.exists():
+            return version_file.read_text().strip()
+    except:
+        pass
+    return 'unknown'
+
+
+def send_heartbeat(master_host, master_port, station_id, local_ip, station_port):
+    """Send heartbeat to master with load metrics and version"""
     try:
         # Collect load metrics
         metrics = get_load_metrics()
 
-        url = f'http://{master_host}:8001/cluster/heartbeat'
+        # Get version
+        version = get_version()
+
+        url = f'http://{master_host}:{master_port}/cluster/heartbeat'
         data = {
             'station_id': station_id,
             'host': local_ip,
-            'port': 8001,
-            'metrics': metrics
+            'port': station_port,
+            'metrics': metrics,
+            'version': version
         }
         response = requests.post(url, json=data, timeout=5)
 
@@ -112,16 +127,22 @@ def send_heartbeat(master_host, station_id, local_ip):
 
 
 def main():
-    if len(sys.argv) < 2:
-        print("Usage: python cluster_heartbeat_daemon.py <master_host>")
-        print("Example: python cluster_heartbeat_daemon.py localhost")
-        sys.exit(1)
+    import argparse
 
-    master_host = sys.argv[1]
-    station_id = os.environ.get('STATION_ID')
+    parser = argparse.ArgumentParser(description="Cluster Heartbeat Daemon")
+    parser.add_argument("master_host", help="Master station hostname or IP")
+    parser.add_argument("--master-port", type=int, default=8001, help="Master station port (default: 8001)")
+    parser.add_argument("--station-port", type=int, default=8001, help="This station's port (default: 8001)")
+    parser.add_argument("--station-id", help="Station ID (overrides STATION_ID env var)")
+    args = parser.parse_args()
+
+    master_host = args.master_host
+    master_port = args.master_port
+    station_port = args.station_port
+    station_id = args.station_id or os.environ.get('STATION_ID')
 
     if not station_id:
-        print("Error: STATION_ID environment variable not set")
+        print("Error: STATION_ID not provided via --station-id or STATION_ID environment variable")
         sys.exit(1)
 
     if station_id == 'station1':
@@ -135,7 +156,8 @@ def main():
     print("=" * 60)
     print(f"Station ID: {station_id}")
     print(f"Local IP: {local_ip}")
-    print(f"Master: {master_host}:8001")
+    print(f"Station Port: {station_port}")
+    print(f"Master: {master_host}:{master_port}")
     print(f"Heartbeat interval: 10 seconds")
     print()
     print("Press Ctrl+C to stop")
@@ -144,13 +166,13 @@ def main():
 
     # Initial registration
     print(f"Registering with master...")
-    send_heartbeat(master_host, station_id, local_ip)
+    send_heartbeat(master_host, master_port, station_id, local_ip, station_port)
 
     # Send heartbeats every 10 seconds
     try:
         while True:
             time.sleep(10)
-            send_heartbeat(master_host, station_id, local_ip)
+            send_heartbeat(master_host, master_port, station_id, local_ip, station_port)
     except KeyboardInterrupt:
         print("\nHeartbeat daemon stopped")
 

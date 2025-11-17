@@ -23,7 +23,7 @@ import requests
 from pathlib import Path
 from dbbasic_web.responses import json as json_response, json_error
 
-from src.object_primitive.runtime.object_runtime import ObjectRuntime
+from dbbasic_object_core.runtime.object_runtime import ObjectRuntime
 
 
 # Initialize runtime (shared across requests)
@@ -98,11 +98,11 @@ def get_station_info(station_id: str) -> dict | None:
         Station info dict or None if not found/inactive
         {
             'station_id': 'station2',
-            'host': '192.168.0.121',
+            'host': '192.0.2.2',
             'port': 8001,
             'last_heartbeat': 1234567890.123,
             'is_active': True,
-            'url': 'http://192.168.0.121:8001',
+            'url': 'http://192.0.2.2:8001',
             'metrics': {...}  # Optional
         }
     """
@@ -406,8 +406,8 @@ def GET(request, id: str):
     # Smart load balancing (Phase 7.4)
     # If no explicit station was specified, consider load-based routing
     if not target_station:
-        # Check if this is an execution request (not metadata/source/logs)
-        is_execution = not any(param in request.GET for param in ['source', 'metadata', 'logs', 'versions'])
+        # Check if this is an execution request (not metadata/source/logs/test)
+        is_execution = not any(param in request.GET for param in ['source', 'metadata', 'logs', 'versions', 'test', 'state', 'status'])
 
         if is_execution:
             # Try to find a better station based on load
@@ -439,7 +439,7 @@ def GET(request, id: str):
     # Load object
     try:
         runtime = get_runtime()
-        obj = runtime.load_object(str(obj_file))
+        obj = runtime.load_object(str(obj_file), object_id=object_id)
     except Exception as e:
         return json_error(f'Failed to load object: {e}', status=500)
 
@@ -469,6 +469,167 @@ def GET(request, id: str):
             }))
         except Exception as e:
             return json_error(f'Failed to get metadata: {e}', status=500)
+
+    # View state
+    if query.get('state') == 'true':
+        try:
+            state = obj.get_state()
+            return json_response(json.dumps({
+                'status': 'ok',
+                'object_id': object_id,
+                'state': state,
+            }))
+        except Exception as e:
+            return json_error(f'Failed to get state: {e}', status=500)
+
+    # Get schedule status
+    if query.get('status') == 'true':
+        try:
+            schedules = runtime.get_schedules(object_id)
+            return json_response(json.dumps({
+                'status': 'ok',
+                'object_id': object_id,
+                'running': len(schedules) > 0,
+                'schedules': schedules
+            }))
+        except Exception as e:
+            return json_error(f'Failed to get status: {e}', status=500)
+
+    # Download file
+    if query.get('file'):
+        filename = query.get('file')
+        try:
+            content = obj.file_manager.get(filename)
+
+            # Detect content type from file extension
+            import mimetypes
+            content_type, _ = mimetypes.guess_type(filename)
+            if content_type is None:
+                content_type = 'application/octet-stream'
+
+            # Build headers
+            headers = [
+                ('content-type', content_type),
+            ]
+
+            # For images, use inline; for others, use attachment
+            if content_type.startswith('image/'):
+                headers.append(('content-disposition', f'inline; filename="{filename}"'))
+            else:
+                headers.append(('content-disposition', f'attachment; filename="{filename}"'))
+
+            # Return binary response (status, headers, body)
+            return 200, headers, [content]
+
+        except FileNotFoundError:
+            return json_error(f'File not found: {filename}', status=404)
+        except Exception as e:
+            return json_error(f'Failed to get file: {e}', status=500)
+
+    # List files
+    if query.get('files') == 'true':
+        try:
+            files = obj.file_manager.list()
+            return json_response(json.dumps({
+                'status': 'ok',
+                'object_id': object_id,
+                'files': files,
+                'count': len(files)
+            }))
+        except Exception as e:
+            return json_error(f'Failed to list files: {e}', status=500)
+
+    # Run tests (dogfooding - objects test themselves!)
+    if query.get('test') == 'true':
+        try:
+            # Get the underlying module (obj.endpoint contains the actual loaded module)
+            module = obj.endpoint
+
+            # Find all test methods (functions starting with test_)
+            test_methods = []
+            for name in dir(module):
+                if name.startswith('test_') and callable(getattr(module, name)):
+                    test_methods.append(name)
+
+            if not test_methods:
+                return json_response(json.dumps({
+                    'status': 'ok',
+                    'object_id': object_id,
+                    'message': 'No tests found (no test_* methods)',
+                    'test_count': 0,
+                    'results': []
+                }))
+
+            # Run each test
+            results = []
+            passed = 0
+            failed = 0
+            skipped = 0
+
+            for test_name in test_methods:
+                test_func = getattr(module, test_name)
+
+                start_time = time.time()
+                try:
+                    result = test_func()
+                    exec_time_ms = (time.time() - start_time) * 1000
+
+                    # Normalize result
+                    if isinstance(result, dict):
+                        status = result.get('status', 'pass')
+                    else:
+                        status = 'pass'
+
+                    if status == 'pass':
+                        passed += 1
+                    elif status == 'skip':
+                        skipped += 1
+                    else:
+                        failed += 1
+
+                    results.append({
+                        'test': test_name,
+                        'status': status,
+                        'exec_time_ms': round(exec_time_ms, 2),
+                        'result': result if isinstance(result, dict) else {'status': status}
+                    })
+
+                except AssertionError as e:
+                    exec_time_ms = (time.time() - start_time) * 1000
+                    failed += 1
+                    results.append({
+                        'test': test_name,
+                        'status': 'fail',
+                        'exec_time_ms': round(exec_time_ms, 2),
+                        'error': str(e),
+                        'error_type': 'AssertionError'
+                    })
+
+                except Exception as e:
+                    exec_time_ms = (time.time() - start_time) * 1000
+                    failed += 1
+                    results.append({
+                        'test': test_name,
+                        'status': 'error',
+                        'exec_time_ms': round(exec_time_ms, 2),
+                        'error': str(e),
+                        'error_type': type(e).__name__
+                    })
+
+            # Determine overall status
+            overall_status = 'pass' if failed == 0 else 'fail'
+
+            return json_response(json.dumps({
+                'status': overall_status,
+                'object_id': object_id,
+                'test_count': len(test_methods),
+                'passed': passed,
+                'failed': failed,
+                'skipped': skipped,
+                'results': results
+            }))
+        except Exception as e:
+            return json_error(f'Failed to run tests: {e}', status=500)
 
     # View logs
     if query.get('logs') == 'true':
@@ -528,6 +689,22 @@ def GET(request, id: str):
         req_data = dict(query)
 
         result = obj.execute('GET', req_data)
+
+        # Check if result specifies a content type (for HTML, images, etc.)
+        if isinstance(result, dict) and result.get('content_type'):
+            content_type = result.get('content_type')
+            body = result.get('body', b'')
+
+            # Build headers
+            headers = [('content-type', content_type)]
+
+            # Return binary/text response
+            if isinstance(body, bytes):
+                return 200, headers, [body]
+            else:
+                from dbbasic_web.responses import html as html_response
+                return html_response(body)
+
         return json_response(json.dumps(result))
     except Exception as e:
         import traceback
@@ -597,9 +774,38 @@ def POST(request, id: str):
     # Load object
     try:
         runtime = get_runtime()
-        obj = runtime.load_object(str(obj_file))
+        obj = runtime.load_object(str(obj_file), object_id=object_id)
     except Exception as e:
         return json_error(f'Failed to load object: {e}', status=500)
+
+    # Check for file upload (multipart/form-data)
+    files = request.get('files', {})
+    if files and len(files) > 0:
+        try:
+            uploaded_files = []
+
+            for field_name, file_data in files.items():
+                # file_data is a dict with 'filename', 'content', 'content_type'
+                filename = file_data.get('filename', field_name)
+                content = file_data.get('content', b'')
+
+                # Store using FileManager
+                obj.file_manager.put(filename, content)
+
+                uploaded_files.append({
+                    'filename': filename,
+                    'size': len(content),
+                    'field': field_name
+                })
+
+            return json_response(json.dumps({
+                'status': 'ok',
+                'message': f'Uploaded {len(uploaded_files)} file(s)',
+                'object_id': object_id,
+                'files': uploaded_files
+            }))
+        except Exception as e:
+            return json_error(f'File upload failed: {e}', status=500)
 
     # Parse request body as JSON
     try:
@@ -608,6 +814,9 @@ def POST(request, id: str):
         else:
             # Fall back to form data or query params
             req_data = dict(request.POST) if request.POST else dict(request.GET)
+    except UnicodeDecodeError as e:
+        # Binary data (file upload) that wasn't caught above
+        return json_error(f'Binary data in request body. Use ?file= parameter for file upload or ensure request.files is properly set. Debug: {e}', status=400)
     except json.JSONDecodeError as e:
         return json_error(f'Invalid JSON: {e}', status=400)
 
@@ -633,14 +842,45 @@ def POST(request, id: str):
                 'version_id': version_id,
                 'object_id': object_id,
             }))
-        except ValueError as e:
-            return json_error(f'Invalid version_id: {e}', status=400)
-        except Exception as e:
-            import traceback
-            tb = traceback.format_exc()
-            return json_error(f'Rollback failed: {e}\n\n{tb}', status=500)
 
-    # Execute POST method (default)
+        except Exception as e:
+            return json_error(f'Rollback failed: {e}', status=500)
+
+    # Start scheduled execution
+    if action == 'start':
+        try:
+            # Call the object's start() method if it exists
+            if hasattr(obj.endpoint, 'start'):
+                result = obj.endpoint.start(req_data)
+                return json_response(json.dumps({
+                    'status': 'ok',
+                    'message': 'Object started',
+                    'object_id': object_id,
+                    'result': result
+                }))
+            else:
+                return json_error('Object has no start() method', status=400)
+        except Exception as e:
+            return json_error(f'Start failed: {e}', status=500)
+
+    # Stop scheduled execution
+    if action == 'stop':
+        try:
+            # Call the object's stop() method if it exists
+            if hasattr(obj.endpoint, 'stop'):
+                result = obj.endpoint.stop(req_data)
+                return json_response(json.dumps({
+                    'status': 'ok',
+                    'message': 'Object stopped',
+                    'object_id': object_id,
+                    'result': result
+                }))
+            else:
+                return json_error('Object has no stop() method', status=400)
+        except Exception as e:
+            return json_error(f'Stop failed: {e}', status=500)
+
+    # Execute POST method (default - no special action)
     try:
         result = obj.execute('POST', req_data)
         return json_response(json.dumps(result))
@@ -712,7 +952,7 @@ def PUT(request, id: str):
     # Load object
     try:
         runtime = get_runtime()
-        obj = runtime.load_object(str(obj_file))
+        obj = runtime.load_object(str(obj_file), object_id=object_id)
     except Exception as e:
         return json_error(f'Failed to load object: {e}', status=500)
 
@@ -827,7 +1067,7 @@ def DELETE(request, id: str):
     # Load object
     try:
         runtime = get_runtime()
-        obj = runtime.load_object(str(obj_file))
+        obj = runtime.load_object(str(obj_file), object_id=object_id)
     except Exception as e:
         return json_error(f'Failed to load object: {e}', status=500)
 

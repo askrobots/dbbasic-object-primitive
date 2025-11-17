@@ -79,13 +79,14 @@ class TestStationLookup:
         current_time = time.time()
 
         # Write registry with 3 stations
+        # Using RFC 5737 TEST-NET-1 addresses (192.0.2.0/24)
         # station1: active (master)
         # station2: active (worker)
         # station3: inactive (old heartbeat)
         with open(registry_file, 'w') as f:
-            f.write(f'station1\t192.168.0.150\t8001\t{current_time}\n')
-            f.write(f'station2\t192.168.0.121\t8001\t{current_time - 10}\n')
-            f.write(f'station3\t192.168.0.122\t8001\t{current_time - 100}\n')
+            f.write(f'station1\t192.0.2.1\t8001\t{current_time}\n')
+            f.write(f'station2\t192.0.2.2\t8001\t{current_time - 10}\n')
+            f.write(f'station3\t192.0.2.3\t8001\t{current_time - 100}\n')
 
         return registry_file
 
@@ -104,10 +105,10 @@ class TestStationLookup:
 
             assert station_info is not None
             assert station_info['station_id'] == 'station2'
-            assert station_info['host'] == '192.168.0.121'
+            assert station_info['host'] == '192.0.2.2'
             assert station_info['port'] == 8001
             assert station_info['is_active'] is True
-            assert station_info['url'] == 'http://192.168.0.121:8001'
+            assert station_info['url'] == 'http://192.0.2.2:8001'
         finally:
             os.chdir(original_cwd)
 
@@ -156,9 +157,9 @@ class TestRequestForwarding:
 
         station_info = {
             'station_id': 'station2',
-            'host': '192.168.0.121',
+            'host': '192.0.2.2',
             'port': 8001,
-            'url': 'http://192.168.0.121:8001',
+            'url': 'http://192.0.2.2:8001',
             'is_active': True
         }
 
@@ -181,7 +182,7 @@ class TestRequestForwarding:
 
             # Verify request was made correctly
             mock_get.assert_called_once_with(
-                'http://192.168.0.121:8001/objects/calculator',
+                'http://192.0.2.2:8001/objects/calculator',
                 params={'operation': 'add', 'a': '5', 'b': '3'},
                 timeout=30
             )
@@ -198,9 +199,9 @@ class TestRequestForwarding:
 
         station_info = {
             'station_id': 'station3',
-            'host': '192.168.0.122',
+            'host': '192.0.2.3',
             'port': 8001,
-            'url': 'http://192.168.0.122:8001',
+            'url': 'http://192.0.2.3:8001',
             'is_active': True
         }
 
@@ -235,9 +236,9 @@ class TestRequestForwarding:
 
         station_info = {
             'station_id': 'station2',
-            'host': '192.168.0.121',
+            'host': '192.0.2.2',
             'port': 8001,
-            'url': 'http://192.168.0.121:8001',
+            'url': 'http://192.0.2.2:8001',
             'is_active': True
         }
 
@@ -259,9 +260,9 @@ class TestRequestForwarding:
 
         station_info = {
             'station_id': 'station2',
-            'host': '192.168.0.121',
+            'host': '192.0.2.2',
             'port': 8001,
-            'url': 'http://192.168.0.121:8001',
+            'url': 'http://192.0.2.2:8001',
             'is_active': True
         }
 
@@ -289,8 +290,8 @@ class TestEndToEndRouting:
 
         current_time = time.time()
         with open(registry_file, 'w') as f:
-            f.write(f'station1\t192.168.0.150\t8001\t{current_time}\n')
-            f.write(f'station2\t192.168.0.121\t8001\t{current_time}\n')
+            f.write(f'station1\t192.0.2.1\t8001\t{current_time}\n')
+            f.write(f'station2\t192.0.2.2\t8001\t{current_time}\n')
 
         # Change to test directory
         original_cwd = os.getcwd()
@@ -366,7 +367,7 @@ class TestEndToEndRouting:
         # Add offline station to registry
         registry_file = setup_test_env / 'data' / 'cluster' / 'stations.tsv'
         with open(registry_file, 'a') as f:
-            f.write(f'station3\t192.168.0.122\t8001\t{time.time() - 100}\n')
+            f.write(f'station3\t192.0.2.3\t8001\t{time.time() - 100}\n')
 
         mock_request = Mock()
         mock_request.GET = {}
@@ -411,8 +412,8 @@ class TestAllHTTPMethods:
 
         current_time = time.time()
         with open(registry_file, 'w') as f:
-            f.write(f'station1\t192.168.0.150\t8001\t{current_time}\n')
-            f.write(f'station2\t192.168.0.121\t8001\t{current_time}\n')
+            f.write(f'station1\t192.0.2.1\t8001\t{current_time}\n')
+            f.write(f'station2\t192.0.2.2\t8001\t{current_time}\n')
 
         original_cwd = os.getcwd()
         os.chdir(tmp_path)

@@ -35,8 +35,8 @@ def mock_registry_file(cluster_data_dir):
     # Write 3 mock stations
     with open(registry_file, 'w') as f:
         f.write(f"station1\tlocalhost\t8001\t{current_time}\n")
-        f.write(f"station2\t192.168.0.121\t8001\t{current_time}\n")
-        f.write(f"station3\t192.168.0.122\t8001\t{current_time - 100}\n")  # Old heartbeat
+        f.write(f"station2\t192.0.2.2\t8001\t{current_time}\n")
+        f.write(f"station3\t192.0.2.3\t8001\t{current_time - 100}\n")  # Old heartbeat
 
     return registry_file
 
@@ -100,7 +100,7 @@ class TestClusterRegistry:
                     existing[sid] = parts
 
         # Add new station
-        existing['station2'] = ['station2', '192.168.0.121', '8001', str(current_time)]
+        existing['station2'] = ['station2', '192.0.2.2', '8001', str(current_time)]
 
         # Write back
         with open(registry_file, 'w') as f:
@@ -183,7 +183,7 @@ class TestHeartbeat:
         # Initial heartbeat
         time1 = time.time()
         with open(registry_file, 'w') as f:
-            f.write(f"station2\t192.168.0.121\t8001\t{time1}\n")
+            f.write(f"station2\t192.0.2.2\t8001\t{time1}\n")
 
         # Wait a bit
         time.sleep(0.1)
@@ -232,8 +232,8 @@ class TestHeartbeat:
         # Multiple stations register
         stations = {
             'station1': ['station1', 'localhost', '8001', str(current_time)],
-            'station2': ['station2', '192.168.0.121', '8001', str(current_time)],
-            'station3': ['station3', '192.168.0.122', '8001', str(current_time)],
+            'station2': ['station2', '192.0.2.2', '8001', str(current_time)],
+            'station3': ['station3', '192.0.2.3', '8001', str(current_time)],
         }
 
         with open(registry_file, 'w') as f:
@@ -403,7 +403,7 @@ class TestConcurrentHeartbeats:
 
             # Update this station
             station_id = f'station{i}'
-            existing[station_id] = [station_id, f'192.168.0.12{i}', '8001', str(current_time)]
+            existing[station_id] = [station_id, f'192.0.2.{i}', '8001', str(current_time)]
 
             # Write back
             with open(registry_file, 'w') as f:
