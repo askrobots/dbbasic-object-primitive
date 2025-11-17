@@ -1,20 +1,29 @@
 #!/bin/bash
 # Stop the entire cluster
-# Run this from station1 (master)
+# Run this from the master station
+# Reads configuration from cluster.tsv
 
-# Configure for your setup
-STATION2_HOST="station2.local"
-STATION3_HOST="station3.local"
+# Load cluster configuration
+eval "$(python cluster_shell_helper.py)"
 
-echo "=== Stopping 3-Station Cluster ==="
+echo "=== Stopping ${WORKER_COUNT}-Station Cluster ==="
 echo
 
 echo "Stopping workers..."
-ssh $STATION2_HOST 'killall python' && echo "✓ station2 stopped" || echo "⚠ station2 not running"
-ssh $STATION3_HOST 'killall python' && echo "✓ station3 stopped" || echo "⚠ station3 not running"
+
+# Stop worker 1
+if [ -n "$WORKER1_SSH" ]; then
+    ssh "$WORKER1_SSH" 'killall python3' && echo "✓ $WORKER1_ID stopped" || echo "⚠ $WORKER1_ID not running"
+fi
+
+# Stop worker 2
+if [ -n "$WORKER2_SSH" ]; then
+    ssh "$WORKER2_SSH" 'killall python3' && echo "✓ $WORKER2_ID stopped" || echo "⚠ $WORKER2_ID not running"
+fi
+
 echo
 
-echo "Master (station1) still running on this machine"
+echo "Master ($MASTER_ID) still running on this machine"
 echo "Stop manually with Ctrl+C in terminal or: killall python"
 echo
 

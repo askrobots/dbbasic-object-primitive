@@ -85,14 +85,20 @@ curl http://localhost:8001/objects/hello
 
 ### Run a Cluster
 
-Configure hostnames in `start_cluster.sh`:
+1. Copy the example configuration:
 ```bash
-STATION1_HOST="station1.local"
-STATION2_HOST="station2.local"
-STATION3_HOST="station3.local"
+cp cluster.example.tsv cluster.tsv
 ```
 
-Then:
+2. Edit `cluster.tsv` with your station IPs:
+```tsv
+station_id	host	port	user	role
+station1	192.168.1.10	8001	youruser	master
+station2	192.168.1.11	8001	youruser	worker
+station3	192.168.1.12	8001	youruser	worker
+```
+
+3. Start the cluster:
 ```bash
 ./start_cluster.sh
 ```

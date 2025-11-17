@@ -60,6 +60,7 @@ logs/
 *.backup
 .versions/
 benchmarks/results/*.json
+cluster.tsv
 
 # Temporary files
 tmp/

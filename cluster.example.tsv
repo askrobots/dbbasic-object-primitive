@@ -1,0 +1,15 @@
+# Cluster Configuration
+# Copy this file to cluster.tsv and customize for your environment
+#
+# Columns:
+#   station_id - Unique identifier for this station (e.g., station1, station2)
+#   host       - IP address or hostname
+#   port       - Port number for the HTTP server
+#   user       - SSH username for remote deployments
+#   role       - Either 'master' or 'worker'
+#
+# Example 3-station cluster:
+station_id	host	port	user	role
+station1	192.168.1.10	8001	youruser	master
+station2	192.168.1.11	8001	youruser	worker
+station3	192.168.1.12	8001	youruser	worker
