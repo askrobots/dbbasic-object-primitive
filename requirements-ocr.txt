@@ -1,0 +1,23 @@
+# Object Primitive System - OCR/GPU Dependencies (optional)
+# Install: pip install -r requirements-ocr.txt
+#
+# These are large downloads (torch ~2GB, paddle ~1GB).
+# The CPU OCR path (tesseract) works without these.
+# Install only if you need EasyOCR or PaddleOCR.
+
+# === OCR - EasyOCR (PyTorch-based, GPU-optional) ===
+easyocr>=1.7.0
+torch>=2.0.0
+torchvision>=0.15.0
+
+# === OCR - PaddleOCR (Paddle-based, GPU-optional) ===
+# NOTE: PaddleOCR 3.4 / PaddlePaddle 3.3 has a CPU bug (oneDNN NotImplementedError)
+# Pin to 2.9.1 / 3.0.0 until upstream fixes it
+paddleocr==2.9.1
+paddlepaddle==3.0.0
+
+# === Image processing for OCR pipeline ===
+opencv-python-headless>=4.8.0
+scikit-image>=0.21.0
+shapely>=2.0.0
+pyclipper>=1.3.0
