@@ -73,3 +73,5 @@ _to_move
 
 # Runtime data (state, logs, cluster registry)
 data/
+pids/
+*.pid
