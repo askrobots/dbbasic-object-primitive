@@ -34,5 +34,5 @@ http://localhost:8001/dashboard
 
 ## Next Steps
 
-- [Quickstart](QUICKSTART.md) - Create your first object
+- [Quickstart](../QUICKSTART.md) - Create your first object
 - [Cluster Setup](CLUSTER.md) - Run on multiple machines
