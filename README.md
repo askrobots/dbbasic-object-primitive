@@ -147,6 +147,9 @@ This is a research prototype. We're demonstrating concepts, not building a produ
 
 Issues and discussions welcome at: https://github.com/askrobots/dbbasic-object-primitive
 
+See [CONTRIBUTING.md](CONTRIBUTING.md) for bug-report and PR guidance, and
+[SECURITY.md](SECURITY.md) for the private vulnerability reporting channel.
+
 ---
 
 **Built by Ask Robots / dbbasic.com**
